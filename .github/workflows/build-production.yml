@@ -22,7 +22,8 @@ jobs:
         run: |
           echo ACR_NAME: ${{ secrets.ACR_NAME }}
           echo GITHUB_REF#refs/tags :${GITHUB_REF#refs/tags}
-          echo GITHUB_REF##*/: ${GITHUB_REF##*/}
+          echo GITHUB_REF##*/01: ${GITHUB_REF##*/}
+          echo GITHUB_REF##*/02: ${{GITHUB_REF##*/}}
 
       - name: Docker Login
         uses: docker/login-action@v1
