@@ -9,11 +9,11 @@ jobs:
   build_push_image:
     runs-on: ubuntu-latest
 
-    steps:
+    steps:         
+      - uses: actions/checkout@v2
+      
       - name: Environment Printer
         uses: managedkaos/print-env@v1.0
-          
-      - uses: actions/checkout@v2
       
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v1
