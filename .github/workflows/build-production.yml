@@ -10,16 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Print environment variables
+        run: |
+          echo ACR_NAME: ${{ secrets.ACR_NAME }}
+          echo DNS_NAME: ${{ secrets.DNS_NAME }}
+          echo GITHUB TAG: ${GITHUB_REF##*/} - ${GITHUB_REF#refs/tags}
+          
       - uses: actions/checkout@v2
+      
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v1
 
-      - name: Build and Push production image
-        uses: docker/build-push-action@v1.1.1
+      - name: Docker Login
+        uses: docker/login-action@v1
         with:
-          username: ${{secrets.ACR_LOGIN}}
-          password: ${{secrets.ACR_PASSWORD}}
           registry: ${{ secrets.ACR_NAME }}
-          repository: contoso-website
-          tag_with_ref: true
+          username: ${{ secrets.ACR_LOGIN }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push production images
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          tags: ${{secrets.ACR_NAME}}/contoso-website:latest,${{secrets.ACR_NAME}}/contoso-website:${GITHUB_REF#refs/tags}
+          push: true
           
   deploy:
     runs-on: ubuntu-latest
@@ -42,11 +56,7 @@ jobs:
           # AKS cluster name
           cluster-name: contoso-video
       
-      - name: Print environment variables
-        run: |
-          echo ACR_NAME: ${{ secrets.ACR_NAME }}
-          echo DNS_NAME: ${{ secrets.DNS_NAME }}
-          echo GITHUB TAG: ${GITHUB_REF##*/}
+      
 
       - name: Run Helm Deploy
         run: |
@@ -60,4 +70,4 @@ jobs:
             ./kubernetes/contoso-website \
             --set image.repository=${{ secrets.ACR_NAME }} \
             --set dns.name=${{ secrets.DNS_NAME }}
-            --set image.tag=${{GITHUB_REF/refs\/tags\//}}
+            --set image.tag=${GITHUB_REF#refs/tags}
